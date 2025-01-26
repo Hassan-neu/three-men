@@ -38,47 +38,6 @@ body {
 .game-box > button {
     position: relative;
 }
-
-/* .game-box > button:nth-child(9n + 5)::after {
-    width: 2px;
-    height: 100%;
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translate(-50%, 0%);
-    background: red;
-} */
-/* .game-box > button:nth-child(10n + 1)::after {
-    width: 2px;
-    height: 100%;
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translate(-50%, 0%) rotate(-45deg) !important;
-    background: red;
-} */
-/* .game-box > button:nth-child(8n + 9)::after {
-    width: 2px;
-    height: 100%;
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translate(-50%, 0%) rotate(45deg);
-    background: red;
-} */
-/* .game-box > button:nth-child(n + 37):nth-last-child(n + 37)::after {
-    width: 2px;
-    height: 130%;
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translate(-50%, 0%) rotate(90deg);
-    background: red;
-} */
 button.open::after {
     content: "🔻";
     transform: translate(0px, -22px);
@@ -104,9 +63,9 @@ dialog {
         overlay 0.5s allow-discrete,
         display 0.5s allow-discrete;
 }
-[popover]:not(dialog) {
+[popover] {
     position-anchor: --island-anchor;
-    margin: auto auto 0 auto;
+    margin: auto auto 2px auto;
     bottom: anchor(0%);
 }
 [popover]:popover-open,

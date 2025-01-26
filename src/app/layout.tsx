@@ -3,7 +3,6 @@ import localFont from "next/font/local";
 import "./globals.css";
 import GameboardProvider from "@/hooks/context";
 import ConvexClientProvider from "@/providers/convexclient";
-import Script from "next/script";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -31,8 +30,6 @@ export default function RootLayout({
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
-                <Script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" />
-                <Script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/Flip.min.js" />
                 <ConvexClientProvider>
                     <GameboardProvider>{children}</GameboardProvider>
                 </ConvexClientProvider>
