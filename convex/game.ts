@@ -1,11 +1,16 @@
-import { Id } from "./_generated/dataModel";
 import { mutation, query, QueryCtx } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
 export const create = mutation({
-    args: { username: v.string(), userId: v.string() },
-    handler: async (ctx, { username, userId }) => {
+    args: {
+        username: v.string(),
+        userId: v.string(),
+        gameKey: v.string(),
+        pawnColor: v.string(),
+    },
+    handler: async (ctx, { username, userId, gameKey, pawnColor }) => {
         const gameId = await ctx.db.insert("games", {
             maxPlayer: 2,
+            gameKey,
             availablePlayers: [userId],
             players: [
                 {
@@ -73,19 +78,19 @@ export const create = mutation({
             pawns: [
                 {
                     playerId: userId,
-                    background: "red",
+                    pawnColor,
                     gridArea: "a",
                     pawnName: `${username}-1`,
                 },
                 {
                     playerId: userId,
-                    background: "red",
+                    pawnColor,
                     gridArea: "b",
                     pawnName: `${username}-2`,
                 },
                 {
                     playerId: userId,
-                    background: "red",
+                    pawnColor,
                     gridArea: "c",
                     pawnName: `${username}-3`,
                 },
@@ -97,10 +102,19 @@ export const create = mutation({
     },
 });
 export const join = mutation({
-    args: { username: v.string(), id: v.id("games"), userId: v.string() },
-    handler: async (ctx, { username, id, userId }) => {
+    args: {
+        username: v.string(),
+        userId: v.string(),
+        gameKey: v.string(),
+        pawnColor: v.optional(v.string()),
+    },
+    handler: async (ctx, { username, userId, gameKey, pawnColor }) => {
         try {
-            const existingGame = await ctx.db.get(id);
+            const existingGame = await ctx.db
+                .query("games")
+                .filter((q) => q.eq(q.field("gameKey"), gameKey))
+                .unique();
+
             if (!existingGame) {
                 throw new ConvexError("Game not found, Confirm Game Id");
             }
@@ -110,26 +124,26 @@ export const join = mutation({
                 );
             }
             const { availablePlayers, pawns, players } = existingGame;
-            await ctx.db.patch(id, {
+            await ctx.db.patch(existingGame._id, {
                 availablePlayers: [...availablePlayers, userId],
                 players: [...players, { id: userId, username, wins: 0 }],
                 pawns: [
                     ...pawns,
                     {
                         playerId: userId,
-                        background: "orange",
+                        pawnColor,
                         gridArea: "g",
                         pawnName: `${username}-1`,
                     },
                     {
                         playerId: userId,
-                        background: "orange",
+                        pawnColor,
                         gridArea: "h",
                         pawnName: `${username}-2`,
                     },
                     {
                         playerId: userId,
-                        background: "orange",
+                        pawnColor,
                         gridArea: "i",
                         pawnName: `${username}-3`,
                     },
@@ -147,11 +161,15 @@ export const join = mutation({
         }
     },
 });
+
 export const get = query({
-    args: { id: v.id("games") },
-    handler: async (ctx, { id }) => {
+    args: { gameKey: v.string() },
+    handler: async (ctx, { gameKey }) => {
         try {
-            const data = await ctx.db.get(id);
+            const data = await ctx.db
+                .query("games")
+                .filter((q) => q.eq(q.field("gameKey"), gameKey))
+                .unique();
             return data;
         } catch (error) {
             if (error instanceof ConvexError) {
@@ -164,29 +182,22 @@ export const get = query({
     },
 });
 
-export const getAll = query({
-    handler: async (ctx) => {
-        try {
-            const allGames = await ctx.db.query("games").order("desc").take(10);
-            return allGames;
-        } catch (error) {
-            throw error;
-        }
-    },
-});
 export const updateMovement = mutation({
     args: {
-        id: v.id("games"),
+        gameKey: v.string(),
         pawnName: v.string(),
         newArea: v.string(),
     },
-    handler: async (ctx, { id, pawnName, newArea }) => {
-        const existingGame = await ctx.db.get(id);
+    handler: async (ctx, { gameKey, pawnName, newArea }) => {
+        const existingGame = await ctx.db
+            .query("games")
+            .filter((q) => q.eq(q.field("gameKey"), gameKey))
+            .unique();
         const { gridArea, playerId } = existingGame!.pawns.find(
             (pawn) => pawn.pawnName == pawnName
         )!;
         const { pawns, grids } = existingGame!;
-        await ctx.db.patch(id, {
+        await ctx.db.patch(existingGame!._id, {
             pawns: pawns.map((pawn) =>
                 pawn.pawnName == pawnName
                     ? {
@@ -212,20 +223,41 @@ export const updateMovement = mutation({
             ),
             lastPlayer: playerId,
         });
-        const isWon = await checkWinner(ctx, id, playerId);
+        const isWon = await checkWinner(ctx, gameKey, playerId);
         if (isWon) {
-            await ctx.db.patch(id, {
+            const existingGame = await ctx.db
+                .query("games")
+                .filter((q) => q.eq(q.field("gameKey"), gameKey))
+                .unique();
+            await ctx.db.patch(existingGame!._id, {
                 gameWinner: playerId,
                 isPlayable: false,
             });
         }
     },
 });
-
+export const updateColor = mutation({
+    args: { pawnColor: v.string(), gameKey: v.string(), userId: v.string() },
+    handler: async (ctx, { pawnColor, gameKey, userId }) => {
+        const existingGame = await ctx.db
+            .query("games")
+            .filter((q) => q.eq(q.field("gameKey"), gameKey))
+            .unique();
+        const updateUserPawn = existingGame?.pawns.map((pawn) =>
+            pawn.playerId == userId ? { ...pawn, pawnColor } : pawn
+        );
+        await ctx.db.patch(existingGame!._id, {
+            pawns: updateUserPawn,
+        });
+    },
+});
 export const restart = mutation({
-    args: { id: v.id("games") },
-    handler: async (ctx, { id }) => {
-        const existingGame = await ctx.db.get(id);
+    args: { gameKey: v.string() },
+    handler: async (ctx, { gameKey }) => {
+        const existingGame = await ctx.db
+            .query("games")
+            .filter((q) => q.eq(q.field("gameKey"), gameKey))
+            .unique();
         const { pawns: existingPawn, createdBy, otherPlayer } = existingGame!;
         const creatorGrid = ["a", "b", "c"];
         const secondGrid = ["g", "h", "i"];
@@ -239,7 +271,7 @@ export const restart = mutation({
             (pawn) => pawn.playerId == otherPlayer
         );
         secondPawn.forEach((pawn, indx) => (pawn.gridArea = secondGrid[indx]));
-        await ctx.db.patch(id, {
+        await ctx.db.patch(existingGame!._id, {
             grids: [
                 {
                     status: "blocked",
@@ -305,21 +337,28 @@ export const restart = mutation({
 });
 export const endGame = mutation({
     args: {
-        gameId: v.id("games"),
+        gameKey: v.string(),
     },
-    handler: async (ctx, { gameId }) => {
-        await ctx.db.delete(gameId);
+    handler: async (ctx, { gameKey }) => {
+        const existingGame = await ctx.db
+            .query("games")
+            .filter((q) => q.eq(q.field("gameKey"), gameKey))
+            .unique();
+        await ctx.db.delete(existingGame!._id);
         return "Game Ended";
     },
 });
-async function checkWinner(ctx: QueryCtx, id: Id<"games">, playerId: string) {
+async function checkWinner(ctx: QueryCtx, gameKey: string, playerId: string) {
     const winningCombo = [
         ["a", "e", "i"],
         ["b", "e", "h"],
         ["c", "e", "g"],
         ["d", "e", "f"],
     ];
-    const game = await ctx.db.get(id)!;
+    const game = await ctx.db
+        .query("games")
+        .filter((q) => q.eq(q.field("gameKey"), gameKey))
+        .unique();
     const { pawns } = game!;
     const filled = pawns
         .filter((pawn) => pawn.playerId == playerId)

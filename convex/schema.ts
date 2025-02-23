@@ -3,6 +3,7 @@ import { v } from "convex/values";
 
 export default defineSchema({
     games: defineTable({
+        gameKey: v.string(),
         grids: v.array(
             v.object({
                 allowedMove: v.array(v.string()),
@@ -15,7 +16,7 @@ export default defineSchema({
             v.object({
                 pawnName: v.string(),
                 playerId: v.string(),
-                background: v.optional(v.string()),
+                pawnColor: v.optional(v.string()),
                 gridArea: v.string(),
             })
         ),

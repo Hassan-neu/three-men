@@ -61,7 +61,8 @@ dialog {
     transition:
         opacity 0.5s allow-discrete,
         overlay 0.5s allow-discrete,
-        display 0.5s allow-discrete;
+        display 0.5s allow-discrete,
+        visibility 0.5s allow-discrete;
 }
 [popover] {
     position-anchor: --island-anchor;

@@ -3,9 +3,9 @@ import React, { use, useTransition } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useRouter } from "next/navigation";
-import { Id } from "../../convex/_generated/dataModel";
 import { GameboardContext } from "@/hooks/context";
 import { GameboardType } from "@/utils/types";
+
 function StartOptions() {
     return (
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[400px] gap-2 anchor">
@@ -35,18 +35,40 @@ function Creategame() {
     const [isPending, startTransition] = useTransition();
     const { push } = useRouter();
     const { setUser } = use(GameboardContext) as GameboardType;
+    const colors = [
+        {
+            id: "E52020",
+            value: "#E52020",
+        },
+        {
+            id: "FBA518",
+            value: "#FBA518",
+        },
+        {
+            id: "F9CB43",
+            value: "#F9CB43",
+        },
+        {
+            id: "A89C29",
+            value: "#A89C29",
+        },
+    ];
     const createGame = useMutation(api.game.create);
     async function startGame(formData: FormData) {
         try {
             const username = formData.get("name") as string;
+            const pawnColor = formData.get("color") as string;
+            const gameKey = (Math.random() + 1).toString(36).slice(-5);
             startTransition(async () => {
-                const userId = `${username}-${Date.now().toString()}`;
-                const id = await createGame({
-                    username,
+                const userId = `${username.trim()}-${Date.now().toString(36).slice(-4)}`;
+                await createGame({
+                    username: username.trim(),
                     userId,
+                    gameKey,
+                    pawnColor,
                 });
                 setUser(userId);
-                push(`${id}`);
+                push(`${gameKey}`);
             });
         } catch (error) {
             throw error;
@@ -66,6 +88,30 @@ function Creategame() {
                         />
                     </label>
                 </div>
+                <div className="flex flex-col">
+                    <span>pawn color</span>
+                    <div className="flex justify-between">
+                        {colors.map((color) => (
+                            <div key={color.id}>
+                                <label
+                                    htmlFor={color.value}
+                                    className="grid gap-1 [grid-template-areas:'center']"
+                                >
+                                    <input
+                                        type="radio"
+                                        name="color"
+                                        value={color.value}
+                                        className="peer [grid-area:center] cursor-pointer appearance-none z-10"
+                                    />
+                                    <span
+                                        className="w-8 h-8 rounded-full [grid-area:center] border border-transparent peer-checked:border-black"
+                                        style={{ background: color.value }}
+                                    ></span>
+                                </label>
+                            </div>
+                        ))}
+                    </div>
+                </div>
                 <button className="grid [grid-template-areas:'area'] text-xl px-2 py-[4px] bg-black text-white self-stretch rounded-full">
                     {isPending ? (
                         <span className="[grid-area:area]">Loading...</span>
@@ -84,13 +130,13 @@ function Joingame() {
     const [isPending, startTransition] = useTransition();
     async function enterGame(formData: FormData) {
         try {
-            const id = formData.get("gameid") as Id<"games">;
+            const gameKey = formData.get("gamekey") as string;
+            const username = formData.get("name") as string;
+            const userId = `${username.trim()}-${Date.now().toString(36).slice(-4)}`;
             startTransition(async () => {
-                const username = formData.get("name") as string;
-                const userId = `${username}-${Date.now().toString()}`;
-                await joinGame({ username, id, userId });
+                await joinGame({ username: username.trim(), gameKey, userId });
                 setUser(userId);
-                push(`${id}`);
+                push(`${gameKey}`);
             });
         } catch (error) {
             throw error;
@@ -114,7 +160,7 @@ function Joingame() {
                         <span>id</span>
                         <input
                             type="text"
-                            name="gameid"
+                            name="gamekey"
                             className="border border-black h-8 rounded px-2 py-1"
                         />
                     </label>

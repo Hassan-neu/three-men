@@ -1,10 +1,8 @@
-import { Id } from "../../convex/_generated/dataModel";
-
 export interface AreaButtonProps extends React.ComponentProps<"button"> {
     styling: {
         gridArea: string;
     };
-    gameId: Id<"games">;
+    gameKey: string;
     player: {
         gridArea: string;
         allowedMove: string[];
@@ -20,7 +18,7 @@ export interface AreaButtonProps extends React.ComponentProps<"button"> {
 }
 export interface PawnProps extends React.ComponentProps<"div"> {
     styling: {
-        background: string;
+        background?: string;
         gridArea: string;
     };
     lastPlayer?: string;

@@ -8,7 +8,7 @@ import { AreaButtonProps, GameboardType } from "@/utils/types";
 function AreaButton({
     pawns,
     player,
-    gameId,
+    gameKey,
     styling,
     ...props
 }: AreaButtonProps) {
@@ -28,7 +28,7 @@ function AreaButton({
             {...props}
             onClick={async () => {
                 await updateMovement({
-                    id: gameId,
+                    gameKey,
                     newArea: styling.gridArea,
                     pawnName: currentArea,
                 });
