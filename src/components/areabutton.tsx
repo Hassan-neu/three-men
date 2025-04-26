@@ -12,7 +12,7 @@ function AreaButton({
     styling,
     ...props
 }: AreaButtonProps) {
-    const { currentArea, setShowButtons } = use(
+    const { currentArea, setShowButtons, setCurrentArea } = use(
         GameboardContext
     ) as GameboardType;
     const { gridArea } = pawns.find((pawn) => pawn.pawnName == currentArea)!;
@@ -27,12 +27,15 @@ function AreaButton({
             style={{ ...styling }}
             {...props}
             onClick={async () => {
-                await updateMovement({
-                    gameKey,
-                    newArea: styling.gridArea,
-                    pawnName: currentArea,
+                document.startViewTransition(async () => {
+                    await updateMovement({
+                        gameKey,
+                        newArea: styling.gridArea,
+                        pawnName: currentArea,
+                    });
+                    setShowButtons(false);
+                    setCurrentArea("");
                 });
-                setShowButtons(false);
             }}
         ></button>
     );

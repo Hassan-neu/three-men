@@ -19,7 +19,7 @@ function Player({
                 currentArea == pawnName ? "border-2 border-black" : ""
             } ${lastPlayer == playerId || user !== playerId || !isPlayable ? "cursor-not-allowed" : ""}`}
             {...props}
-            style={{ ...styling }}
+            style={{ ...styling, viewTransitionName: pawnName }}
             onClick={() => {
                 if (lastPlayer == playerId) return;
                 if (!isPlayable) return;

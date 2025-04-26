@@ -68,7 +68,7 @@ function Creategame() {
                     pawnColor,
                 });
                 setUser(userId);
-                push(`${gameKey}`);
+                push(`/game/${gameKey}`);
             });
         } catch (error) {
             throw error;
@@ -136,7 +136,7 @@ function Joingame() {
             startTransition(async () => {
                 await joinGame({ username: username.trim(), gameKey, userId });
                 setUser(userId);
-                push(`${gameKey}`);
+                push(`/game/${gameKey}`);
             });
         } catch (error) {
             throw error;

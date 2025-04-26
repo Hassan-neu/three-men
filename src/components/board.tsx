@@ -8,6 +8,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { GameboardType } from "@/utils/types";
+
 function Board({ gameId }: { gameId: string }) {
     const joinDialog = useRef<HTMLDialogElement | null>(null);
     const colorDialog = useRef<HTMLDialogElement | null>(null);
@@ -109,6 +110,7 @@ function Board({ gameId }: { gameId: string }) {
             colorDialog.current.showModal();
         }
     }, [game, user]);
+
     return (
         <>
             <div className="h-screen flex flex-col items-center justify-center gap-10">

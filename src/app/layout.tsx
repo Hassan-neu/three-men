@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import GameboardProvider from "@/hooks/context";
 import ConvexClientProvider from "@/providers/convexclient";
+import Timer from "@/components/timer";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -31,7 +32,10 @@ export default function RootLayout({
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
                 <ConvexClientProvider>
-                    <GameboardProvider>{children}</GameboardProvider>
+                    <GameboardProvider>
+                        <Timer gameStarted={true} />
+                        {children}
+                    </GameboardProvider>
                 </ConvexClientProvider>
             </body>
         </html>
